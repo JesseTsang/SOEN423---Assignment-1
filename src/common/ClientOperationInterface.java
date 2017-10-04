@@ -3,7 +3,7 @@ package common;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-public interface ClientsOperationsInterface extends Remote
+public interface ClientOperationInterface extends Remote
 {
 	//ClientOperationsInterface
 	public void deposit(String customerID, int amt) throws RemoteException;
