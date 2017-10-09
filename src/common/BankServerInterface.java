@@ -4,10 +4,12 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 
+import domain.BranchID;
+
 public interface BankServerInterface extends Remote
 {
 	//ManagerOperationsInterface
-	public Boolean createAccount(String firstName, String lastName, String address, int phone, int branch) throws RemoteException;
+	public Boolean createAccount(String firstName, String lastName, String address, int phone, BranchID branch) throws RemoteException;
 	public Boolean editRecord(String customerID, String fieldName, String newValue) throws RemoteException;
 	public HashMap<String, Integer> getAccountCount() throws RemoteException;
 	
