@@ -13,5 +13,9 @@ public class ClientDriver
 		BranchID branch1 = BranchID.BC;
 		
 		Client client1 = new Client(firstName1, lastName1, address1, phoneNum1, clientNumber1, branch1);
+		client1.deposit(100);
+		client1.withdraw(90);
+		//client1.withdraw(20);
+		System.out.println(client1.toString());
 	}
 }
