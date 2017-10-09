@@ -90,19 +90,64 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 
 
 	@Override
-	public synchronized Boolean createAccount(String firstName, String lastName, String address, int phone, BranchID branchID) throws RemoteException 
+	public synchronized Boolean createAccount(String firstName, String lastName, String address, String phone, String customerID, BranchID branchID) 
+			throws RemoteException 
 	{
 		this.logger.info("Initiating user account creation for " + firstName + " " + lastName);
 		
 		//If the user IS at the right branch ... we start the operation.
-		if(branchID == this.branchID)
+		if (branchID == this.branchID)
 		{
+			//Each character will be a key, each key will starts with 10 buckets.
 			String key = Character.toString((char)lastName.charAt(0));
-			//ArrayList<Client>
+			ArrayList<Client> values = new ArrayList<Client>(10);
 			
+			//If a key doesn't exist ... for example no client with last name Z ... then ...
+			if(!clientList.containsKey(key))
+			{
+				//Adds a key and 10 buckets
+				clientList.put(key, values);
+			}
+			
+			//This is to test if the account is already exist.
+			//1. Extract the buckets of the last Name ... for example, we will get all the clients with last name start with Z
+			values = clientList.get(key);
+			
+			//2. After extracted the buckets, we loops to check if the customerID is already exist.
+			for (Client client: values)
+			{
+				if (client.getCustomerID().equals(customerID))
+				{
+					this.logger.severe("Server Log: | Account Creation Error: Account Already Exists.");
+					throw new RemoteException ("Server Error: | Account Creation Error: Account Already Exists.");
+				}
+			}
+			
+			//3. If no existing account found, then we create a new account.
+			Client newClient;
+			
+			try
+			{
+				newClient = new Client(firstName, lastName, address, phone, customerID, branchID);
+				values.add(newClient);
+				clientList.put(key, values);
+				
+				this.logger.info("Server Log: | Account Creation Successful.");
+				this.logger.info(newClient.toString());
+			}
+			catch (Exception e)
+			{
+				this.logger.severe("Server Log: | Account Creation Error. " + e.getMessage());
+				throw new RemoteException(e.getMessage());
+			}	
+		}//end if clause ... if not the same branch
+		else
+		{
+			this.logger.severe("Server Log: | Account Creation Error: BranchID Mismatch.");
+			throw new RemoteException("Server Error: | Account Creation Error: BranchID Mismatch.");		
 		}
 		
-		return null;
+		return true;
 	}
 
 	@Override
