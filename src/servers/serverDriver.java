@@ -1,6 +1,7 @@
 package servers;
 
 import common.BankServerImpl;
+import domain.BranchID;
 
 public class serverDriver {
 
@@ -8,7 +9,7 @@ public class serverDriver {
 	{
 		try
 		{
-			new BankServerImpl("MTL", 2964);
+			new BankServerImpl(BranchID.QC, 2964);
 		}
 		catch (Exception e)
 		{
@@ -16,7 +17,5 @@ public class serverDriver {
 			System.err.println(e.getMessage());
 			e.printStackTrace();
 		}
-
 	}
-
 }
