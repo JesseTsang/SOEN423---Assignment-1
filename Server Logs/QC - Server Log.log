@@ -1,0 +1,12 @@
+Oct 09, 2017 12:04:25 AM common.BankServerImpl <init>
+INFO: Initializing Server ...
+Oct 09, 2017 12:04:25 AM common.BankServerImpl createAccount
+INFO: Initiating user account creation for Paul Netto
+Oct 09, 2017 12:04:25 AM common.BankServerImpl createAccount
+INFO: Server Log: | Account Creation Successful.
+Oct 09, 2017 12:04:25 AM common.BankServerImpl createAccount
+INFO: Client [firstName=Paul, lastName=Netto, address=4965, Heritage Drive, phoneNumber=450-123-4567, accountNumber=BCCN4567, branchID=QC, balance=0.0]
+Oct 09, 2017 12:04:25 AM common.BankServerImpl editRecord
+INFO: Server Log: | Edit Record Log: Address Record Modified Successful | Customer ID: BCCN4567
+Oct 09, 2017 12:04:25 AM common.BankServerImpl editRecord
+SEVERE: Server Log: | Edit Record Error: Invalid Phone Format | Customer ID: BCCN4567
