@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -228,10 +230,87 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 	}
 
 	@Override
-	public HashMap<String, Integer> getAccountCount() throws RemoteException 
+	public HashMap<String, String> getAccountCount() throws RemoteException 
 	{
-		// TODO Auto-generated method stub
-		return null;
+		HashMap<String, String> totalAccountCount = new HashMap<String, String>();
+		
+		this.logger.info("Acquiring local account count.");
+		String localAccountCount = Integer.toString(getLocalAccountCount());
+		totalAccountCount.put(this.branchID.toString(), localAccountCount);
+		
+		DatagramSocket socket = null;
+		
+		//1. Create UDP Socket 
+		try
+		{
+			this.logger.info("Creating UDP socket to receive data from other servers.");
+			socket = new DatagramSocket(BankServerImpl.UDPPort);
+		}
+		catch (SocketException e)
+		{
+			this.logger.severe("Server Log: | getAccountCount() Error | " + e.getMessage());
+			throw new RemoteException(e.getMessage());
+		}
+		
+	    String[] bankServers = registry.list();
+	    
+	    //2. Get RMI Registry List of other servers.
+	    for(String bankServer : bankServers)
+	    {
+	    	if(bankServer.equals(this.branchID.toString()))
+	    	{
+	    		continue;
+	    	}
+	    	
+	    	BankServerInterface otherServer = null;
+	    	
+	    	try
+	    	{
+	    		otherServer = (BankServerInterface) registry.lookup(bankServer);
+	    	}
+	    	catch (NotBoundException e)
+	    	{
+	    		this.logger.severe("Server Log: | getAccountCount() Error: " + bankServer + " Not Bound.");
+	    		throw new RemoteException(e.getMessage());
+	    	}
+	    	
+	    	//3. For each server we will ask for their local total count.
+	    	this.logger.info("Receiving UDP data from server " + bankServer);
+	    	
+	    	Boolean recv = false;
+	    	String rData = null;
+	    	
+	    	while(!recv)
+	    	{
+	    		otherServer.getUDPData(this.UDPPort);
+	    		byte[] buffer = new byte[1024];
+	    		DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+	    		
+	    		try
+	    		{
+	    			socket.receive(request);
+	    		}
+	    		catch (IOException e)
+	    		{
+	    			this.logger.severe("Server Log: | getAccountCount() Error: IO Exception at receiving reply.");
+	    			throw new RemoteException (e.getMessage());
+	    		}
+	    		
+	    		rData = new String(request.getData());
+	    		this.logger.info("Received data from " + bankServer);
+	    		
+	    		if(request.getPort() > 9000)
+	    		{
+	    			recv = true;
+	    		}
+	    	}
+	    	
+	    	totalAccountCount.put(bankServer, rData);
+	    }//end for loop (bankServer : bankServers)
+	    
+	    socket.close();
+	
+		return totalAccountCount;
 	}
 
 	@Override

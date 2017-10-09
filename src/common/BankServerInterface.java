@@ -12,7 +12,7 @@ public interface BankServerInterface extends Remote
 	//ManagerOperationsInterface
 	public Boolean createAccount(String firstName, String lastName, String address, String phone, String customerID,BranchID branch) throws RemoteException;
 	public Boolean editRecord(String customerID, EditRecordFields fieldName, String newValue) throws RemoteException;
-	public HashMap<String, Integer> getAccountCount() throws RemoteException;
+	public HashMap<String, String> getAccountCount() throws RemoteException;
 	
 	//ClientOperationsInterface
 	public void deposit(String customerID, int amt) throws RemoteException;
