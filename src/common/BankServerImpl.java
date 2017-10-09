@@ -13,6 +13,7 @@ import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import domain.BranchID;
 import domain.Client;
 
 public class BankServerImpl extends UnicastRemoteObject implements BankServerInterface 
@@ -26,12 +27,12 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 		
 	//Variable for each separate bank server
 	private Map<String, ArrayList<Client>> clientList = new HashMap<String, ArrayList<Client>>();
-	private String branchID = "";
+	private BranchID branchID;
 	private Logger logger = null;
 	private static int UDPPort;
 
 	//1. Each branch will have its separate server
-	public BankServerImpl(String branchID, int UDPPort) throws RemoteException, AlreadyBoundException 
+	public BankServerImpl(BranchID branchID, int UDPPort) throws RemoteException, AlreadyBoundException 
 	{
 		super();
 		
@@ -39,14 +40,14 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 		BankServerImpl.UDPPort = UDPPort;
 		
 		//1.1 Logging Initiation
-		/*this.logger = this.initiateLogger();
-		this.logger.info("Initializing Server ...");*/
+		this.logger = this.initiateLogger();
+		this.logger.info("Initializing Server ...");
 		
 		//serverInitialization();
 		
 		//1.2 Bind to the local server to the RMI Registry
 		registry = LocateRegistry.createRegistry(UDPPort);
-		registry.bind(this.branchID, this);
+		registry.bind(this.branchID.toString(), this);
 		
 		System.out.println("Server: " + branchID + " initialization success.");
 		System.out.println("Server: " + branchID + " port is : " + UDPPort);
@@ -61,7 +62,7 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 		try
 		{
 			//FileHandler Configuration and Format Configuration
-			fh = new FileHandler(this.branchID + " - Server Log.log");
+			fh = new FileHandler("Server Logs/" + this.branchID + " - Server Log.log");
 			
 			//Disable console handling
 			logger.setUseParentHandlers(false);
@@ -88,12 +89,19 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 	}
 
 
-
 	@Override
-	public Boolean createAccount(String firstName, String lastName, String address, int phone, int branch)
-			throws RemoteException 
+	public synchronized Boolean createAccount(String firstName, String lastName, String address, int phone, BranchID branchID) throws RemoteException 
 	{
-		// TODO Auto-generated method stub
+		this.logger.info("Initiating user account creation for " + firstName + " " + lastName);
+		
+		//If the user IS at the right branch ... we start the operation.
+		if(branchID == this.branchID)
+		{
+			String key = Character.toString((char)lastName.charAt(0));
+			//ArrayList<Client>
+			
+		}
+		
 		return null;
 	}
 
