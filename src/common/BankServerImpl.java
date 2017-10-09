@@ -23,6 +23,11 @@ import domain.BranchID;
 import domain.Client;
 import domain.EditRecordFields;
 
+/*
+ * To-do:
+ * 1. Rewrite duplicate methods, such as verify if an account exist with a customerID.
+ */
+
 public class BankServerImpl extends UnicastRemoteObject implements BankServerInterface 
 {
 	private static final long serialVersionUID = 1L;
@@ -158,7 +163,7 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 	}
 
 	@Override
-	public Boolean editRecord(String customerID, EditRecordFields fieldName, String newValue) throws RemoteException 
+	public synchronized Boolean editRecord(String customerID, EditRecordFields fieldName, String newValue) throws RemoteException 
 	{
 		//1. Check if such client exist.
 		String key = Character.toString((char)customerID.charAt(CLIENT_NAME_INI_POS));
@@ -230,7 +235,7 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 	}
 
 	@Override
-	public HashMap<String, String> getAccountCount() throws RemoteException 
+	public synchronized HashMap<String, String> getAccountCount() throws RemoteException 
 	{
 		HashMap<String, String> totalAccountCount = new HashMap<String, String>();
 		
@@ -245,96 +250,201 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 		{
 			this.logger.info("Creating UDP socket to receive data from other servers.");
 			socket = new DatagramSocket(BankServerImpl.UDPPort);
+			
+			String[] bankServers = registry.list();
+		    
+		    //2. Get RMI Registry List of other servers.
+		    for(String bankServer : bankServers)
+		    {
+		    	if(bankServer.equals(this.branchID.toString()))
+		    	{
+		    		continue;
+		    	}
+		    	
+		    	BankServerInterface otherServer = null;
+		    	
+		    	try
+		    	{
+		    		otherServer = (BankServerInterface) registry.lookup(bankServer);
+		    	}
+		    	catch (NotBoundException e)
+		    	{
+		    		this.logger.severe("Server Log: | getAccountCount() Error: " + bankServer + " Not Bound.");
+		    		throw new RemoteException(e.getMessage());
+		    	}
+		    	
+		    	//3. For each server we will ask for their local total count.
+		    	this.logger.info("Receiving UDP data from server " + bankServer);
+		    	
+		    	Boolean recv = false;
+		    	String rData = null;
+		    	
+		    	while(!recv)
+		    	{
+		    		otherServer.getUDPData(BankServerImpl.UDPPort);
+		    		byte[] buffer = new byte[1024];
+		    		DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+		    		
+		    		try
+		    		{
+		    			socket.receive(request);
+		    		}
+		    		catch (IOException e)
+		    		{
+		    			this.logger.severe("Server Log: | getAccountCount() Error: IO Exception at receiving reply.");
+		    			throw new RemoteException (e.getMessage());
+		    		}
+		    		
+		    		rData = new String(request.getData());
+		    		this.logger.info("Received data from " + bankServer);
+		    		
+		    		if(request.getPort() > 9000)
+		    		{
+		    			recv = true;
+		    		}
+		    	}
+		    	
+		    	totalAccountCount.put(bankServer, rData);
+		    }//end for loop (bankServer : bankServers)
+		    
+		    socket.close();
 		}
 		catch (SocketException e)
 		{
 			this.logger.severe("Server Log: | getAccountCount() Error | " + e.getMessage());
 			throw new RemoteException(e.getMessage());
 		}
-		
-	    String[] bankServers = registry.list();
-	    
-	    //2. Get RMI Registry List of other servers.
-	    for(String bankServer : bankServers)
-	    {
-	    	if(bankServer.equals(this.branchID.toString()))
-	    	{
-	    		continue;
-	    	}
-	    	
-	    	BankServerInterface otherServer = null;
-	    	
-	    	try
-	    	{
-	    		otherServer = (BankServerInterface) registry.lookup(bankServer);
-	    	}
-	    	catch (NotBoundException e)
-	    	{
-	    		this.logger.severe("Server Log: | getAccountCount() Error: " + bankServer + " Not Bound.");
-	    		throw new RemoteException(e.getMessage());
-	    	}
-	    	
-	    	//3. For each server we will ask for their local total count.
-	    	this.logger.info("Receiving UDP data from server " + bankServer);
-	    	
-	    	Boolean recv = false;
-	    	String rData = null;
-	    	
-	    	while(!recv)
-	    	{
-	    		otherServer.getUDPData(this.UDPPort);
-	    		byte[] buffer = new byte[1024];
-	    		DatagramPacket request = new DatagramPacket(buffer, buffer.length);
-	    		
-	    		try
-	    		{
-	    			socket.receive(request);
-	    		}
-	    		catch (IOException e)
-	    		{
-	    			this.logger.severe("Server Log: | getAccountCount() Error: IO Exception at receiving reply.");
-	    			throw new RemoteException (e.getMessage());
-	    		}
-	    		
-	    		rData = new String(request.getData());
-	    		this.logger.info("Received data from " + bankServer);
-	    		
-	    		if(request.getPort() > 9000)
-	    		{
-	    			recv = true;
-	    		}
-	    	}
-	    	
-	    	totalAccountCount.put(bankServer, rData);
-	    }//end for loop (bankServer : bankServers)
-	    
-	    socket.close();
-	
+    
 		return totalAccountCount;
 	}
 
 	@Override
-	public void deposit(String customerID, int amt) throws RemoteException 
+	public synchronized void deposit(String customerID, int amount) throws RemoteException 
 	{
-		// TODO Auto-generated method stub
+		if (amount <= 0)
+		{
+			this.logger.info("Server Log: | Deposit Error: Attempted to deposit incorrect amount. | Amount: " + amount + " | Customer ID: " + customerID);
+			throw new RemoteException ("Server Log: | Deposit Error: Attempted to deposit incorrect amount. | Amount: " + amount + " | Customer ID: " + customerID);
+		}
+		
+		//1. Verify the customerID is valid.
+		try
+		{
+			//Maybe move the verification process to a separate method
+			String key = Character.toString((char)customerID.charAt(CLIENT_NAME_INI_POS));
+			ArrayList<Client> values = clientList.get(key);
+			
+			for (Client client : values)
+			{
+				if (client.getCustomerID().equals(customerID))
+				{
+					client.deposit(amount);
+					double newBalance = client.getBalance();
+					this.logger.info("Server Log: | Deposit Log: | Deposit: " + amount + " | Balance: " + newBalance + " | Customer ID: " + customerID);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			this.logger.severe("Server Log: | Deposit Error: | Unable to locate account. | Customer ID: " + customerID);
+			throw new RemoteException("Server Log: | Deposit Error: | Unable to locate account. | Customer ID: " + customerID);
+		}
+	}
+
+	@Override
+	public synchronized void withdraw(String customerID, int amount) throws RemoteException 
+	{
+		if (amount <= 0)
+		{
+			this.logger.info("Server Log: | Withdrawl Error: Attempted to deposit incorrect amount. | Amount: " + amount + " | Customer ID: " + customerID);
+			throw new RemoteException ("Server Log: | Withdrawl Error: Attempted to deposit incorrect amount. | Amount: " + amount + " | Customer ID: " + customerID);
+		}
+		
+		//1. Verify the customerID is valid.
+		try
+		{
+			//Maybe move the verification process to a separate method
+			String key = Character.toString((char)customerID.charAt(CLIENT_NAME_INI_POS));
+			ArrayList<Client> values = clientList.get(key);
+			
+			for (Client client : values)
+			{
+				if (client.getCustomerID().equals(customerID))
+				{
+					client.withdraw(amount);
+					double newBalance = client.getBalance();
+					this.logger.info("Server Log: | Withdrawl Log: | Withdrawl: " + amount + " | Balance: " + newBalance + " | Customer ID: " + customerID);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			this.logger.severe("Server Log: | Withdrawl Error: | Unable to locate account. | Customer ID: " + customerID);
+			throw new RemoteException("Server Log: | Withdrawl Error: | Unable to locate account. | Customer ID: " + customerID);
+		}
 
 	}
 
 	@Override
-	public void withdraw(String customerID, int amt) throws RemoteException 
+	public synchronized double getBalance(String customerID) throws RemoteException 
 	{
-		// TODO Auto-generated method stub
-
+		double newBalance = 0;
+		
+		//1. Verify the customerID is valid.
+		try
+		{
+			//Maybe move the verification process to a separate method
+			String key = Character.toString((char)customerID.charAt(CLIENT_NAME_INI_POS));
+			ArrayList<Client> values = clientList.get(key);
+					
+			for (Client client : values)
+			{
+				if (client.getCustomerID().equals(customerID))
+				{
+					newBalance = client.getBalance();
+							
+					this.logger.info("Server Log: | Balance Log: | Balance: " + newBalance + " | Customer ID: " + customerID);
+					
+					return newBalance;
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			this.logger.severe("Server Log: | Withdrawl Error: | Unable to locate account. | Customer ID: " + customerID);
+			throw new RemoteException("Server Log: | Withdrawl Error: | Unable to locate account. | Customer ID: " + customerID);
+		}
+		
+		return newBalance;
+	}
+	
+	@Override
+	public synchronized Client retrieveAccount(String customerID) throws RemoteException
+	{
+		try
+		{
+			String key = Character.toString((char)customerID.charAt(CLIENT_NAME_INI_POS));
+			ArrayList<Client> values = clientList.get(key);
+			
+			for (Client client : values)
+			{
+				if (client.getCustomerID().equals(customerID))
+				{
+					return client;
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			this.logger.severe("Server Log: | Retrieve Account Error: Account Not Found. | Customer ID: " + customerID + " | " + e.getMessage());
+			throw new RemoteException(e.getMessage());		
+		}
+		
+		return null;
 	}
 
 	@Override
-	public void getBalance(String customerID) throws RemoteException 
-	{
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public int getLocalAccountCount()
+	public synchronized int getLocalAccountCount()
 	{
 		int totalLocalAccountCount;
 		
@@ -346,7 +456,7 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 	@Override
 	//This will create data-gram socket to connect to other servers.
 	//Necessary in order to give total account count to other servers.
-	public void getUDPData(int portNum) throws RemoteException
+	public synchronized void getUDPData(int portNum) throws RemoteException
 	{
 		DatagramSocket dataSocket;
 		
@@ -364,12 +474,14 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 			this.logger.info("Generating datagram and sending packet to port" + portNum);
 			DatagramPacket request = new DatagramPacket(message, message.length, hostAddress, portNum);
 			dataSocket.send(request);
+			
+			dataSocket.close();
 		}
 		catch (Exception e)
 		{
 			this.logger.severe("Server Log: | getUDPData Error: " + e.getMessage());
 			throw new RemoteException(e.getMessage());
-		}
+		}	
 	}
 	
 	public static void main(String args[])
@@ -408,7 +520,8 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 		}
 		finally
 		{
-			dataSocket.close();			
+			dataSocket.close();	
+			System.out.println("Listening Process - DataSocket Closed.");
 		}
-	}
+	}	
 }

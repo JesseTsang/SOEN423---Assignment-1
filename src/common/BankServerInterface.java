@@ -5,6 +5,7 @@ import java.rmi.RemoteException;
 import java.util.HashMap;
 
 import domain.BranchID;
+import domain.Client;
 import domain.EditRecordFields;
 
 public interface BankServerInterface extends Remote
@@ -17,11 +18,12 @@ public interface BankServerInterface extends Remote
 	//ClientOperationsInterface
 	public void deposit(String customerID, int amt) throws RemoteException;
 	public void withdraw(String customerID, int amt) throws RemoteException;
-	public void getBalance(String customerID) throws RemoteException;
+	public double getBalance(String customerID) throws RemoteException;
 	
 	//MiscOperations
 	public int getLocalAccountCount();
 	
 	//CoreOperations
+	public Client retrieveAccount(String customerID) throws RemoteException;
 	public void getUDPData(int port) throws RemoteException;
 }

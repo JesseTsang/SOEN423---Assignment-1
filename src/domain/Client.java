@@ -128,21 +128,24 @@ public class Client
 	
 	public void deposit(float amount) throws Exception
 	{
-		if (amount > 0)
+		/*if (amount > 0)
 		{
 			this.balance = this.balance + amount;	
 			this.logger.info("Deposit Log: | Deposit: " + amount + " | Balance: " + this.balance);					
 		}
 		else
 		{
-			this.logger.info("Deposit Error: Attemped to deposit incorrect amount: " + amount);
+			this.logger.info("Deposit Error: Attempted to deposit incorrect amount: " + amount);
 			throw new Exception ("Deposit Error: Deposit amount must be positive.");		
-		}	
+		}*/
+		
+		this.balance = this.balance + amount;
+		this.logger.info("Deposit Log: | Deposit: " + amount + " | Balance: " + this.balance);	
 	}
 	
 	public void withdraw(double amount) throws Exception
 	{
-		if(amount > 0)
+		/*if(amount > 0)
 		{
 			double newBalance = this.balance - amount; 
 			
@@ -156,7 +159,10 @@ public class Client
 				this.balance = newBalance;
 				this.logger.info("Withdrawal Log: | Withdraw: " + amount + " | Balance: " + newBalance);
 			}
-		}
+		}*/
+		
+		this.balance = this.balance - amount;
+		this.logger.info("Withdrawal Log: | Withdrawal: " + amount + " | Balance: " + this.balance);	
 	}
 
 	public String getAddress()
@@ -192,6 +198,11 @@ public class Client
 	public String getCustomerID()
 	{
 		return customerID;
+	}
+	
+	public double getBalance()
+	{
+		return balance;
 	}
 
 	@Override
