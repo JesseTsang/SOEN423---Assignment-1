@@ -20,14 +20,14 @@ public class Client
 	private Logger logger = null;
 	
 	private static final int ACCOUNT_TYPE_POS = 2;
-	private static Pattern ACCOUNT_NUMER_PATTERN = java.util.regex.Pattern.compile("^(BC|MB|NB|QC)(C|M)(\\d{4})$");
+	private static Pattern ACCOUNT_NUMER_PATTERN = java.util.regex.Pattern.compile("^(BC|MB|NB|QC)(C|M)[a-zA-Z](\\d{4})$");
 	private static Pattern PHONE_PATTERN = java.util.regex.Pattern.compile("^\\d{3}-\\d{3}-\\d{4}$");
 	
 	public Client(String firstName, String lastName, String address, String phoneNumber, String customerID, BranchID branchID) 
 			throws Exception
 	{
 		//If pass verification test ...
-		if(verify(firstName, lastName, customerID, phoneNumber))
+		if(verify(firstName, lastName, phoneNumber, customerID))
 		{
 			this.firstName = firstName;
 			this.lastName = lastName;
@@ -94,7 +94,7 @@ public class Client
 			
 	}
 
-	private boolean verify(String firstName, String lastName, String phoneNumber, String accountNumber) throws Exception
+	private boolean verify(String firstName, String lastName, String phoneNumber, String customerID) throws Exception
 	{	
 		if (firstName.isEmpty())
 		{
@@ -106,11 +106,18 @@ public class Client
 			throw new Exception ("Error: Client missing last name.");
 		}
 		
-		if (!ACCOUNT_NUMER_PATTERN.matcher(accountNumber).matches())
+		if (!ACCOUNT_NUMER_PATTERN.matcher(customerID).matches())
 		{
 			throw new Exception ("Error: Client account number format error.");
 		}
 		
+		verifyPhoneNumber(phoneNumber);
+		
+		return true;
+	}
+	
+	public boolean verifyPhoneNumber (String phoneNumber) throws Exception
+	{
 		if (!PHONE_PATTERN.matcher(phoneNumber).matches())
 		{
 			throw new Exception ("Error: Client phone number format error.");
