@@ -12,7 +12,7 @@ public class Client
 	private String lastName;
 	private String address;
 	private String phoneNumber;
-	private String accountNumber;
+	private String customerID;
 	
 	private BranchID branchID;
 	private double balance;
@@ -23,25 +23,26 @@ public class Client
 	private static Pattern ACCOUNT_NUMER_PATTERN = java.util.regex.Pattern.compile("^(BC|MB|NB|QC)(C|M)(\\d{4})$");
 	private static Pattern PHONE_PATTERN = java.util.regex.Pattern.compile("^\\d{3}-\\d{3}-\\d{4}$");
 	
-	public Client(String firstName, String lastName, String address, String phoneNumber, String accountNumber, BranchID branchID) throws Exception
+	public Client(String firstName, String lastName, String address, String phoneNumber, String customerID, BranchID branchID) 
+			throws Exception
 	{
 		//If pass verification test ...
-		if(verify(firstName, lastName, accountNumber, phoneNumber))
+		if(verify(firstName, lastName, customerID, phoneNumber))
 		{
 			this.firstName = firstName;
 			this.lastName = lastName;
 			this.address = address;
 			this.phoneNumber = phoneNumber;
-			this.accountNumber = accountNumber;
+			this.customerID = customerID;
 			this.branchID = branchID;
 			
 			this.balance = 0.0;
 		}
 		
-		char accountType = Character.toUpperCase(accountNumber.charAt(ACCOUNT_TYPE_POS));
+		char accountType = Character.toUpperCase(customerID.charAt(ACCOUNT_TYPE_POS));
 		
 		this.logger = logFile(accountType);
-		this.logger.info("Client " + accountNumber + "created successfully.");
+		this.logger.info("Client " + customerID + " created successfully.");
 		
 		System.out.println("Account created successed.");
 		
@@ -51,14 +52,14 @@ public class Client
 	{
 		if(accountType == 'C')
 		{
-			System.out.println("Account Type : " + accountType + " | Branch ID: " + this.branchID + " | Account Number: " + this.accountNumber);
-			this.filename = "Clients Logs/" + this.branchID + " - " + this.accountNumber;
+			System.out.println("Account Type : " + accountType + " | Branch ID: " + this.branchID + " | Account Number: " + this.customerID);
+			this.filename = "Clients Logs/" + this.branchID + " - " + this.customerID;
 			System.out.println("File Path: " + this.filename);
 		}
 		else if (accountType == 'M')
 		{
 			System.out.println("Account type is M.");
-			this.filename = "managers/" + this.branchID + " - " + this.accountNumber; 		
+			this.filename = "managers/" + this.branchID + " - " + this.customerID; 		
 		}
 		else
 		{
@@ -93,7 +94,7 @@ public class Client
 			
 	}
 
-	private boolean verify(String firstName, String lastName, String accountNumber, String phoneNumber) throws Exception
+	private boolean verify(String firstName, String lastName, String phoneNumber, String accountNumber) throws Exception
 	{	
 		if (firstName.isEmpty())
 		{
@@ -117,5 +118,81 @@ public class Client
 		
 		return true;
 	}
+	
+	public void deposit(float amount) throws Exception
+	{
+		if (amount > 0)
+		{
+			this.balance = this.balance + amount;	
+			this.logger.info("Deposit Log: | Deposit: " + amount + " | Balance: " + this.balance);					
+		}
+		else
+		{
+			this.logger.info("Deposit Error: Attemped to deposit incorrect amount: " + amount);
+			throw new Exception ("Deposit Error: Deposit amount must be positive.");		
+		}	
+	}
+	
+	public void withdraw(double amount) throws Exception
+	{
+		if(amount > 0)
+		{
+			double newBalance = this.balance - amount; 
+			
+			if(newBalance < 0)
+			{
+				this.logger.info("Withdrawal Error: Attemped to withdraw more than current balance: " + newBalance);
+				throw new Exception ("Withdrawal Log: | Error: Insufficient fund.");
+			}
+			else
+			{
+				this.balance = newBalance;
+				this.logger.info("Withdrawal Log: | Withdraw: " + amount + " | Balance: " + newBalance);
+			}
+		}
+	}
 
+	public String getAddress()
+	{
+		return address;
+	}
+
+	public void setAddress(String address)
+	{
+		this.address = address;
+	}
+
+	public String getPhoneNumber()
+	{
+		return phoneNumber;
+	}
+
+	public void setPhoneNumber(String phoneNumber)
+	{
+		this.phoneNumber = phoneNumber;
+	}
+
+	public BranchID getBranchID()
+	{
+		return branchID;
+	}
+
+	public void setBranchID(BranchID branchID)
+	{
+		this.branchID = branchID;
+	}
+	
+	public String getCustomerID()
+	{
+		return customerID;
+	}
+
+	@Override
+	public String toString()
+	{
+		return "Client [firstName=" + firstName + ", lastName=" + lastName + ", address=" + address + ", phoneNumber="
+		        + phoneNumber + ", accountNumber=" + customerID + ", branchID=" + branchID + ", balance=" + balance
+		        + "]";
+	}
+	
 }
