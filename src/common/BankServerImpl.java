@@ -1,6 +1,10 @@
 package common;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -15,6 +19,7 @@ import java.util.logging.SimpleFormatter;
 
 import domain.BranchID;
 import domain.Client;
+import domain.EditRecordFields;
 
 public class BankServerImpl extends UnicastRemoteObject implements BankServerInterface 
 {
@@ -30,6 +35,8 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 	private BranchID branchID;
 	private Logger logger = null;
 	private static int UDPPort;
+	
+	private static final int    CLIENT_NAME_INI_POS = 3;
 
 	//1. Each branch will have its separate server
 	public BankServerImpl(BranchID branchID, int UDPPort) throws RemoteException, AlreadyBoundException 
@@ -51,8 +58,7 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 		
 		System.out.println("Server: " + branchID + " initialization success.");
 		System.out.println("Server: " + branchID + " port is : " + UDPPort);
-	}
-	
+	}	
 
 	private Logger initiateLogger() 
 	{
@@ -88,7 +94,6 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 		return logger;
 	}
 
-
 	@Override
 	public synchronized Boolean createAccount(String firstName, String lastName, String address, String phone, String customerID, BranchID branchID) 
 			throws RemoteException 
@@ -118,8 +123,8 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 			{
 				if (client.getCustomerID().equals(customerID))
 				{
-					this.logger.severe("Server Log: | Account Creation Error: Account Already Exists.");
-					throw new RemoteException ("Server Error: | Account Creation Error: Account Already Exists.");
+					this.logger.severe("Server Log: | Account Creation Error: Account Already Exists | Customer ID: " + customerID);
+					throw new RemoteException ("Server Error: | Account Creation Error: Account Already Exists | Customer ID: " + customerID);
 				}
 			}
 			
@@ -132,28 +137,93 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 				values.add(newClient);
 				clientList.put(key, values);
 				
-				this.logger.info("Server Log: | Account Creation Successful.");
+				this.logger.info("Server Log: | Account Creation Successful | Customer ID: " + customerID);
 				this.logger.info(newClient.toString());
 			}
 			catch (Exception e)
 			{
-				this.logger.severe("Server Log: | Account Creation Error. " + e.getMessage());
+				this.logger.severe("Server Log: | Account Creation Error. | Customer ID: " + customerID + " | " + e.getMessage());
 				throw new RemoteException(e.getMessage());
 			}	
 		}//end if clause ... if not the same branch
 		else
 		{
-			this.logger.severe("Server Log: | Account Creation Error: BranchID Mismatch.");
-			throw new RemoteException("Server Error: | Account Creation Error: BranchID Mismatch.");		
+			this.logger.severe("Server Log: | Account Creation Error: BranchID Mismatch | Customer ID: " + customerID);
+			throw new RemoteException("Server Error: | Account Creation Error: BranchID Mismatch | Customer ID: " + customerID);		
 		}
 		
 		return true;
 	}
 
 	@Override
-	public Boolean editRecord(String customerID, String fieldName, String newValue) throws RemoteException 
+	public Boolean editRecord(String customerID, EditRecordFields fieldName, String newValue) throws RemoteException 
 	{
-		// TODO Auto-generated method stub
+		//1. Check if such client exist.
+		String key = Character.toString((char)customerID.charAt(CLIENT_NAME_INI_POS));
+		ArrayList<Client> values = clientList.get(key);
+		
+		for (Client client: values)
+		{
+			//1.1 Client Found
+			if (client.getCustomerID().equals(customerID))
+			{		
+				switch(fieldName)
+				{
+					case address:
+						client.setAddress(newValue);
+						this.logger.info("Server Log: | Edit Record Log: Address Record Modified Successful | Customer ID: " + client.getCustomerID());
+						break;
+					
+					case phone:
+						try
+						{
+							if(client.verifyPhoneNumber(newValue))
+							{
+								client.setPhoneNumber(newValue);
+								this.logger.info("Server Log: | Edit Record Log: Phone Record Modified Successful | Customer ID: " + client.getCustomerID());
+								break;
+							}
+						}
+						catch (Exception e)
+						{
+							this.logger.severe("Server Log: | Edit Record Error: Invalid Phone Format | Customer ID: " + client.getCustomerID());
+							e.printStackTrace();
+							break;
+						}
+					
+					case branch:
+						try
+						{
+							for(BranchID enumName : BranchID.values())
+							{
+								if(enumName.name().equalsIgnoreCase(newValue))
+								{
+									client.setBranchID(enumName);
+									this.logger.info("Server Log: | Edit Record Log: Branch ID Modified Successful | Customer ID: " + client.getCustomerID());
+									break;
+								}
+								else
+								{
+									this.logger.severe("Server Log: | Edit Record Error: Invalid Branch ID | Customer ID: " + client.getCustomerID());
+									break;
+								}
+							}
+						}
+						catch (Exception e)
+						{
+							this.logger.severe("Server Log: | Edit Record Error: Unknow Branch Error | Customer ID: " + client.getCustomerID());
+							break;
+						}					
+				}//end switch statements
+			}//end if clause (customer found)
+			else
+			{
+				this.logger.severe("Server Log: | Record Edit Error: Account Not Found | Customer ID: " + customerID);
+				throw new RemoteException ("Server Log: | Edit Record Error: Account Not Found | Customer ID: " + customerID);
+			}
+		}
+			
+		
 		return null;
 	}
 
@@ -184,4 +254,82 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 		// TODO Auto-generated method stub
 	}
 
+	@Override
+	public int getLocalAccountCount()
+	{
+		int totalLocalAccountCount;
+		
+		totalLocalAccountCount = clientList.values().size();
+		
+		return totalLocalAccountCount;
+	}
+	
+	@Override
+	//This will create data-gram socket to connect to other servers.
+	//Necessary in order to give total account count to other servers.
+	public void getUDPData(int portNum) throws RemoteException
+	{
+		DatagramSocket dataSocket;
+		
+		try
+		{
+			this.logger.info("Initialiating a datagram with port " + portNum);
+			dataSocket = new DatagramSocket();
+			
+			this.logger.info("Converting total local account count data to ByteArrayOutPutStream.");
+			byte[] message = ByteBuffer.allocate(4).putInt(getLocalAccountCount()).array();
+			
+			//Acquire local host
+			InetAddress hostAddress = InetAddress.getByName("localhost");
+
+			this.logger.info("Generating datagram and sending packet to port" + portNum);
+			DatagramPacket request = new DatagramPacket(message, message.length, hostAddress, portNum);
+			dataSocket.send(request);
+		}
+		catch (Exception e)
+		{
+			this.logger.severe("Server Log: | getUDPData Error: " + e.getMessage());
+			throw new RemoteException(e.getMessage());
+		}
+	}
+	
+	public static void main(String args[])
+	{
+		DatagramSocket dataSocket = null;
+		
+		//Start the process to listen on UDPPort, so we can accept request from other servers.
+		try
+		{
+			//1. Bind the UDPPort to the data gram socket.
+			dataSocket = new DatagramSocket(UDPPort);
+			
+			System.out.println("Listening Process - DataSocket Created.");
+			
+			//2. Create a byte buffer to receive data.
+			byte[] buffer = new byte[1000];
+			
+			System.out.println("Listening Process - Buffer Array Created.");
+			
+			//3. Start listening on port
+			while(true)
+			{
+				DatagramPacket request = new DatagramPacket(buffer, buffer.length);
+				dataSocket.receive(request);
+				String reply = "ack";
+				buffer = reply.getBytes();
+				DatagramPacket replyPackey = new DatagramPacket(buffer, buffer.length, request.getAddress(), request.getPort());
+				dataSocket.send(replyPackey);
+				System.out.println("UDP Server on port " + UDPPort + " is now listening.");
+			}
+		}
+		catch (Exception e)
+		{
+			System.err.println("Main Error: Unable to start port listening");
+			System.err.println(e.getMessage());
+		}
+		finally
+		{
+			dataSocket.close();			
+		}
+	}
 }
