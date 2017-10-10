@@ -319,7 +319,7 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 	}
 
 	@Override
-	public synchronized void deposit(String customerID, int amount) throws RemoteException 
+	public synchronized void deposit(String customerID, double amount) throws RemoteException 
 	{
 		if (amount <= 0)
 		{
@@ -352,7 +352,7 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 	}
 
 	@Override
-	public synchronized void withdraw(String customerID, int amount) throws RemoteException 
+	public synchronized void withdraw(String customerID, double amount) throws RemoteException 
 	{
 		if (amount <= 0)
 		{
