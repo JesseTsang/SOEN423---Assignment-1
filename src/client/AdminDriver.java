@@ -21,8 +21,8 @@ public class AdminDriver {
 			String cid1 = "BCCA1234";
 			
 			AdminClient testClient1 = new AdminClient(testAdmin1, branch1);
-			testClient1.createAccountRecord(clientF1, clientL1, address1, phone1, testAdmin1, branch1);
-			testClient1.deposit(1000);
+			testClient1.createAccountRecord(clientF1, clientL1, address1, phone1, cid1, branch1);
+			
 			
 			
 			//AdminClient testClient2 = new AdminClient(testAdmin1, branch2);

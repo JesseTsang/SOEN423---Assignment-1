@@ -77,7 +77,7 @@ public class AdminClient
 		return result;
 	}
 	
-	public synchronized void deposit(double amount) throws AccessException, RemoteException, NotBoundException
+	/*public synchronized void deposit(double amount) throws AccessException, RemoteException, NotBoundException
 	{
 		BankServerInterface bankServer = (BankServerInterface)registry.lookup(this.branchID.toString());
 		
@@ -85,7 +85,7 @@ public class AdminClient
 		double balance = bankServer.getBalance(this.customerID);
 		
 		System.out.println("Deposit Sucessed. | Customer ID: " + this.customerID + " | Deposit Amount: " + amount + " | Account Balance: " + balance);		
-	}
+	}*/
 	
 	public static void main(String args[])
 	{

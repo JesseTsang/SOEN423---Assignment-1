@@ -373,6 +373,7 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 				if (client.getCustomerID().equals(customerID))
 				{
 					double newBalance = client.getBalance();
+					newBalance = newBalance - amount;
 					
 					if (newBalance < 0 )
 					{

@@ -10,7 +10,7 @@ public class CustomerDriver
 
 	public static void main(String[] args) 
 	{
-		String customer1 = "BCMJ1234";
+		String customer1 = "BCCA1234";
 		BranchID branch1 = BranchID.QC;
 		
 		try
