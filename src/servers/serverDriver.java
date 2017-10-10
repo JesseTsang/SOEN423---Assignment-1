@@ -4,7 +4,7 @@ import common.BankServerImpl;
 import domain.BranchID;
 import domain.EditRecordFields;
 
-public class serverDriver 
+public class ServerDriver 
 {
 	public static void main(String[] args) 
 	{		
@@ -22,12 +22,12 @@ public class serverDriver
 			EditRecordFields editPhone1 = EditRecordFields.phone;
 			String newPhoneValue1 = "438-123-123"; //Should produce error
 			
-			BankServerImpl serverTest1 = new BankServerImpl(BranchID.QC, 2964);
+			BankServerImpl serverTest1 = new BankServerImpl(branch1, 2964);
 			
-			serverTest1.createAccount(firstname1, lastName1, address1, phone1, customerID1, branch1);
+			//serverTest1.createAccount(firstname1, lastName1, address1, phone1, customerID1, branch1);
 			//serverTest1.deposit(customerID1, 1000);
-			serverTest1.editRecord(customerID1, editAddress1, newAddressValue1);
-			serverTest1.editRecord(customerID1, editPhone1, newPhoneValue1);			
+			//serverTest1.editRecord(customerID1, editAddress1, newAddressValue1);
+			//serverTest1.editRecord(customerID1, editPhone1, newPhoneValue1);			
 		}
 		catch (Exception e)
 		{
