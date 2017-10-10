@@ -79,8 +79,22 @@ public class AdminClient
 	{
 		try
 		{	
-			String testAdminID = "BCMJ1234";
-			AdminClient testClient1 = new AdminClient(testAdminID, BranchID.BC);
+			String testAdmin1 = "BCMJ1234";
+			BranchID branch1 = BranchID.QC;
+			
+			String clientF1 = "John";
+			String clientL1 = "Doe";
+			String address1 = "Rue Hello";
+			String phone1 = "438-131-1234";
+			String cid1 = "BCCJ1234";
+			
+			AdminClient testClient1 = new AdminClient(testAdmin1, branch1);
+			testClient1.createAccountRecord(clientF1, clientL1, address1, phone1, cid1, branch1);
+			
+			String testAdmin2 = "BCCA1234";
+			BranchID branch2 = BranchID.BC;
+			
+			//AdminClient testClient2 = new AdminClient(testAdmin1, branch2);
 		}
 		catch (RemoteException | NotBoundException e)
 		{

@@ -25,6 +25,7 @@ public class CustomerClient
 		
 		registry = LocateRegistry.getRegistry(BANK_HOST, BANK_PORT);
 		
+		
 		System.out.println("Login Sucessed. | Customer ID: " + this.customerID + " | Branch ID: " + this.branchID.toString());	
 	}
 	
@@ -50,11 +51,12 @@ public class CustomerClient
 	public static void main(String[] args)
 	{
 		String customer1 = "BCCA1234";
-		BranchID branch1 = BranchID.BC;
+		BranchID branch1 = BranchID.QC;
 		
 		try
 		{
 			CustomerClient testClient1 = new CustomerClient(customer1, branch1);
+			testClient1.deposit(1000);
 		}
 		catch (RemoteException | NotBoundException e)
 		{
