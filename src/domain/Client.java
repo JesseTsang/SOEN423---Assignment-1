@@ -126,7 +126,7 @@ public class Client
 		return true;
 	}
 	
-	public void deposit(float amount) throws Exception
+	public void deposit(double amount) throws Exception
 	{
 		/*if (amount > 0)
 		{
