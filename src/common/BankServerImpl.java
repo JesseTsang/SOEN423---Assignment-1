@@ -444,7 +444,7 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 	}
 
 	@Override
-	public synchronized int getLocalAccountCount()
+	public synchronized int getLocalAccountCount() throws RemoteException
 	{
 		int totalLocalAccountCount;
 		
