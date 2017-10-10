@@ -21,7 +21,7 @@ public interface BankServerInterface extends Remote
 	public double getBalance(String customerID) throws RemoteException;
 	
 	//MiscOperations
-	public int getLocalAccountCount();
+	public int getLocalAccountCount() throws RemoteException;
 	
 	//CoreOperations
 	public Client retrieveAccount(String customerID) throws RemoteException;
