@@ -31,6 +31,8 @@ public class AdminClient
 			throw new RemoteException ("Login Error: This client is for managers only.");
 		}
 		
+		
+		this.customerID = customerID;
 		this.branchID = branchID;
 		registry = LocateRegistry.getRegistry(BANK_HOST, BANK_PORT);
 		
@@ -75,9 +77,19 @@ public class AdminClient
 		return result;
 	}
 	
+	public synchronized void deposit(double amount) throws AccessException, RemoteException, NotBoundException
+	{
+		BankServerInterface bankServer = (BankServerInterface)registry.lookup(this.branchID.toString());
+		
+		bankServer.deposit(this.customerID, amount);
+		double balance = bankServer.getBalance(this.customerID);
+		
+		System.out.println("Deposit Sucessed. | Customer ID: " + this.customerID + " | Deposit Amount: " + amount + " | Account Balance: " + balance);		
+	}
+	
 	public static void main(String args[])
 	{
-		try
+		/*try
 		{	
 			String testAdmin1 = "BCMJ1234";
 			BranchID branch1 = BranchID.QC;
@@ -100,7 +112,7 @@ public class AdminClient
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}	
+		}*/	
 	}
 
 }

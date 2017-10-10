@@ -46,11 +46,12 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 	private static final int    CLIENT_NAME_INI_POS = 3;
 
 	//1. Each branch will have its separate server
-	public BankServerImpl(BranchID branchID, int UDPPort) throws RemoteException, AlreadyBoundException 
+	public BankServerImpl(String branchID, int UDPPort) throws RemoteException, AlreadyBoundException 
 	{
 		super();
 		
-		this.branchID = branchID;
+		
+		this.branchID = BranchID.valueOf(branchID);
 		BankServerImpl.UDPPort = UDPPort;
 		
 		//1.1 Logging Initiation
@@ -111,7 +112,7 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 		if (branchID == this.branchID)
 		{
 			//Each character will be a key, each key will starts with 10 buckets.
-			String key = Character.toString((char)lastName.charAt(0));
+			String key = Character.toString((char)customerID.charAt(CLIENT_NAME_INI_POS));
 			ArrayList<Client> values = new ArrayList<Client>(10);
 			
 			//If a key doesn't exist ... for example no client with last name Z ... then ...
@@ -371,8 +372,18 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 			{
 				if (client.getCustomerID().equals(customerID))
 				{
-					client.withdraw(amount);
 					double newBalance = client.getBalance();
+					
+					if (newBalance < 0 )
+					{
+						this.logger.severe("Server Log: | Withdrawl Error: Attempted to withdraw more than current balance. | Amount: " 
+								+ amount + " | Customer ID: " + customerID);
+						throw new RemoteException("Server Log: | Withdrawl Error: Attempted to withdraw more than current balance. | Amount: " 
+								+ amount + " | Customer ID: " + customerID);
+						
+					}
+					client.withdraw(amount);
+					
 					this.logger.info("Server Log: | Withdrawl Log: | Withdrawl: " + amount + " | Balance: " + newBalance + " | Customer ID: " + customerID);
 				}
 			}
@@ -395,6 +406,8 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 		{
 			//Maybe move the verification process to a separate method
 			String key = Character.toString((char)customerID.charAt(CLIENT_NAME_INI_POS));
+			
+			System.out.println(key);
 			ArrayList<Client> values = clientList.get(key);
 					
 			for (Client client : values)

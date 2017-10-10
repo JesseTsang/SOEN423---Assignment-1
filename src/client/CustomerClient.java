@@ -39,6 +39,16 @@ public class CustomerClient
 		System.out.println("Deposit Sucessed. | Customer ID: " + this.customerID + " | Deposit Amount: " + amount + " | Account Balance: " + balance);		
 	}
 	
+	public synchronized void withdraw(double amount) throws AccessException, RemoteException, NotBoundException
+	{
+		BankServerInterface bankServer = (BankServerInterface)registry.lookup(this.branchID.toString());
+		
+		bankServer.withdraw(this.customerID, amount);
+		double balance = bankServer.getBalance(this.customerID);
+		
+		System.out.println("Withdrawal Sucessed. | Customer ID: " + this.customerID + " | Withdraw Amount: " + amount + " | Account Balance: " + balance);		
+	}
+	
 	public synchronized void getBalance() throws AccessException, RemoteException, NotBoundException
 	{
 		BankServerInterface bankServer = (BankServerInterface)registry.lookup(this.branchID.toString());
@@ -50,7 +60,7 @@ public class CustomerClient
 
 	public static void main(String[] args)
 	{
-		String customer1 = "BCCA1234";
+		/*String customer1 = "BCCA1234";
 		BranchID branch1 = BranchID.QC;
 		
 		try
@@ -62,7 +72,7 @@ public class CustomerClient
 		{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 
 	}
 
