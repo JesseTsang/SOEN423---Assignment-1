@@ -1,4 +1,6 @@
-Oct 10, 2017 6:22:15 PM domain.Client <init>
+Oct 15, 2017 10:46:08 PM domain.Client <init>
 INFO: Client BCCA1234 created successfully.
-Oct 10, 2017 6:22:20 PM domain.Client deposit
+Oct 15, 2017 10:46:23 PM domain.Client deposit
 INFO: Deposit Log: | Deposit: 1000.0 | Balance: 1000.0
+Oct 15, 2017 10:46:38 PM domain.Client deposit
+INFO: Deposit Log: | Deposit: 1000.0 | Balance: 2000.0

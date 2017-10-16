@@ -357,8 +357,8 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 	{
 		if (amount <= 0)
 		{
-			this.logger.info("Server Log: | Withdrawl Error: Attempted to deposit incorrect amount. | Amount: " + amount + " | Customer ID: " + customerID);
-			throw new RemoteException ("Server Log: | Withdrawl Error: Attempted to deposit incorrect amount. | Amount: " + amount + " | Customer ID: " + customerID);
+			this.logger.info("Server Log: | Withdrawl Error: Attempted to withdraw incorrect amount. | Amount: " + amount + " | Customer ID: " + customerID);
+			throw new RemoteException ("Server Log: | Withdrawl Error: Attempted to withdraw incorrect amount. | Amount: " + amount + " | Customer ID: " + customerID);
 		}
 		
 		//1. Verify the customerID is valid.
@@ -372,27 +372,30 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 			{
 				if (client.getCustomerID().equals(customerID))
 				{
-					double newBalance = client.getBalance();
-					newBalance = newBalance - amount;
+					double oldBalance = client.getBalance();
+					double newBalance = oldBalance - amount;				
 					
 					if (newBalance < 0 )
 					{
+						System.out.println("Error: Negative withdrawal.");
 						this.logger.severe("Server Log: | Withdrawl Error: Attempted to withdraw more than current balance. | Amount: " 
-								+ amount + " | Customer ID: " + customerID);
-						throw new RemoteException("Server Log: | Withdrawl Error: Attempted to withdraw more than current balance. | Amount: " 
-								+ amount + " | Customer ID: " + customerID);
+								+ amount + " | Customer Balance: " + oldBalance + " | Customer ID: " + customerID);
 						
+						throw new RemoteException("Server Log: | Withdrawl Error: Attempted to withdraw more than current balance. | Amount: " 
+								+ amount + " | Customer Balance: " + oldBalance + " | Customer ID: " + customerID);			
 					}
-					client.withdraw(amount);
-					
-					this.logger.info("Server Log: | Withdrawl Log: | Withdrawl: " + amount + " | Balance: " + newBalance + " | Customer ID: " + customerID);
+					else
+					{
+						client.withdraw(amount);
+						
+						this.logger.info("Server Log: | Withdrawl Log: | Withdrawl: " + amount + " | Balance: " + newBalance + " | Customer ID: " + customerID);					
+					}					
 				}
 			}
 		}
 		catch (Exception e)
 		{
-			this.logger.severe("Server Log: | Withdrawl Error: | Unable to locate account. | Customer ID: " + customerID);
-			throw new RemoteException("Server Log: | Withdrawl Error: | Unable to locate account. | Customer ID: " + customerID);
+			throw new RemoteException(e.getMessage());
 		}
 
 	}
@@ -408,7 +411,6 @@ public class BankServerImpl extends UnicastRemoteObject implements BankServerInt
 			//Maybe move the verification process to a separate method
 			String key = Character.toString((char)customerID.charAt(CLIENT_NAME_INI_POS));
 			
-			System.out.println(key);
 			ArrayList<Client> values = clientList.get(key);
 					
 			for (Client client : values)

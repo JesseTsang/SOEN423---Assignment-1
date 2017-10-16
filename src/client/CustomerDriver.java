@@ -17,13 +17,12 @@ public class CustomerDriver
 		{
 			CustomerClient testClient1 = new CustomerClient(customer1, branch1);
 			
-			testClient1.getBalance();
-			testClient1.deposit(1000);
-			testClient1.withdraw(4000);
+		    //testClient1.getBalance();
+			//testClient1.deposit(1000);
+			testClient1.withdraw(10000);
 		}
 		catch (RemoteException | NotBoundException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

@@ -34,9 +34,9 @@ public class CustomerClient
 		BankServerInterface bankServer = (BankServerInterface)registry.lookup(this.branchID.toString());
 		
 		bankServer.deposit(this.customerID, amount);
-		double balance = bankServer.getBalance(this.customerID);
+		//double balance = bankServer.getBalance(this.customerID);
 		
-		System.out.println("Deposit Sucessed. | Customer ID: " + this.customerID + " | Deposit Amount: " + amount + " | Account Balance: " + balance);		
+		//System.out.println("Deposit Successful. | Customer ID: " + this.customerID + " | Deposit Amount: " + amount + " | Account Balance: " + balance);		
 	}
 	
 	public synchronized void withdraw(double amount) throws AccessException, RemoteException, NotBoundException
@@ -44,9 +44,9 @@ public class CustomerClient
 		BankServerInterface bankServer = (BankServerInterface)registry.lookup(this.branchID.toString());
 		
 		bankServer.withdraw(this.customerID, amount);
-		double balance = bankServer.getBalance(this.customerID);
+		//double balance = bankServer.getBalance(this.customerID);
 		
-		System.out.println("Withdrawal Sucessed. | Customer ID: " + this.customerID + " | Withdraw Amount: " + amount + " | Account Balance: " + balance);		
+		//System.out.println("Withdrawal Successful. | Customer ID: " + this.customerID + " | Withdraw Amount: " + amount + " | Account Balance: " + balance);		
 	}
 	
 	public synchronized void getBalance() throws AccessException, RemoteException, NotBoundException

@@ -1,18 +1,16 @@
-Oct 10, 2017 6:22:07 PM common.BankServerImpl <init>
+Oct 15, 2017 10:46:03 PM common.BankServerImpl <init>
 INFO: Initializing Server ...
-Oct 10, 2017 6:22:15 PM common.BankServerImpl createAccount
+Oct 15, 2017 10:46:08 PM common.BankServerImpl createAccount
 INFO: Initiating user account creation for John Doe
-Oct 10, 2017 6:22:15 PM common.BankServerImpl createAccount
+Oct 15, 2017 10:46:08 PM common.BankServerImpl createAccount
 INFO: Server Log: | Account Creation Successful | Customer ID: BCCA1234
-Oct 10, 2017 6:22:15 PM common.BankServerImpl createAccount
+Oct 15, 2017 10:46:08 PM common.BankServerImpl createAccount
 INFO: Client [firstName=John, lastName=Doe, address=Rue Hello, phoneNumber=438-131-1234, accountNumber=BCCA1234, branchID=QC, balance=0.0]
-Oct 10, 2017 6:22:20 PM common.BankServerImpl getBalance
-INFO: Server Log: | Balance Log: | Balance: 0.0 | Customer ID: BCCA1234
-Oct 10, 2017 6:22:20 PM common.BankServerImpl deposit
+Oct 15, 2017 10:46:23 PM common.BankServerImpl deposit
 INFO: Server Log: | Deposit Log: | Deposit: 1000.0 | Balance: 1000.0 | Customer ID: BCCA1234
-Oct 10, 2017 6:22:20 PM common.BankServerImpl getBalance
-INFO: Server Log: | Balance Log: | Balance: 1000.0 | Customer ID: BCCA1234
-Oct 10, 2017 6:22:20 PM common.BankServerImpl withdraw
-SEVERE: Server Log: | Withdrawl Error: Attempted to withdraw more than current balance. | Amount: 4000.0 | Customer ID: BCCA1234
-Oct 10, 2017 6:22:20 PM common.BankServerImpl withdraw
-SEVERE: Server Log: | Withdrawl Error: | Unable to locate account. | Customer ID: BCCA1234
+Oct 15, 2017 10:46:38 PM common.BankServerImpl deposit
+INFO: Server Log: | Deposit Log: | Deposit: 1000.0 | Balance: 2000.0 | Customer ID: BCCA1234
+Oct 15, 2017 10:46:48 PM common.BankServerImpl withdraw
+INFO: Server Log: | Withdrawl Error: Attempted to withdraw incorrect amount. | Amount: -100.0 | Customer ID: BCCA1234
+Oct 15, 2017 10:47:02 PM common.BankServerImpl withdraw
+SEVERE: Server Log: | Withdrawl Error: Attempted to withdraw more than current balance. | Amount: 10000.0 | Customer Balance: 2000.0 | Customer ID: BCCA1234
