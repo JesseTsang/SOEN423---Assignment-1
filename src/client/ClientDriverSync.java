@@ -30,9 +30,9 @@ public class ClientDriverSync implements Runnable
 		try 
 		{
 			CustomerClient test1 = new CustomerClient (customer1, branch1);
-			CustomerClient test2 = new CustomerClient (customer1, branch1);
-			CustomerClient test3 = new CustomerClient (customer1, branch1);
-			CustomerClient test4 = new CustomerClient (customer1, branch1);
+			CustomerClient test2 = new CustomerClient (customer2, branch2);
+			CustomerClient test3 = new CustomerClient (customer3, branch3);
+			CustomerClient test4 = new CustomerClient (customer4, branch4);
 		} 
 		catch (RemoteException | NotBoundException e) 
 		{

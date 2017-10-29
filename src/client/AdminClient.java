@@ -6,8 +6,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.HashMap;
-import java.util.logging.Logger;
-
 import common.BankServerInterface;
 import domain.BranchID;
 import domain.EditRecordFields;
